@@ -162,8 +162,8 @@ class _HomePageState extends State<HomePage> {
                           Icons.location_pin,
                           size: 40,
                         color: local["visited"] == true
-                            ? Colors.deepOrangeAccent.shade100 // locais já visitados
-                            : Colors.deepOrange, // locais não visitados
+                            ? Colors.green.shade700 // locais já visitados
+                            : Colors.greenAccent.shade700, // locais não visitados
                         ),
                       )
                   );
