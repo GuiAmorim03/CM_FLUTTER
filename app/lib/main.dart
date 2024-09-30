@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -177,14 +180,56 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class PoiScreen extends StatelessWidget {
+class PoiScreen extends StatefulWidget {
   const PoiScreen({super.key, required this.poiID});
-
+  
   final int poiID;
 
   @override
+  State<StatefulWidget> createState() {
+    return _PoiScreenState();
+  }
+}
+
+class _PoiScreenState extends State<PoiScreen> {
+  CameraController? _controller;
+  List<CameraDescription>? _cameras;
+  bool _isCameraActive = false; // Novo estado para controlar a exibição da câmera
+
+  @override
+  void initState() {
+    super.initState();
+    initCamera();
+  }
+
+  Future<void> initCamera() async {
+    _cameras = await availableCameras();
+    _controller = CameraController(_cameras![0], ResolutionPreset.high);
+    await _controller!.initialize();
+    setState(() {});
+  }
+
+  Future<void> takePicture() async {
+    if (_controller != null && _controller!.value.isInitialized) {
+      try {
+        final picture = await _controller!.takePicture();
+        print('Foto capturada: ${picture.path}');
+        // Aqui você pode navegar para outra tela ou mostrar a imagem capturada
+      } catch (e) {
+        print('Erro ao tirar foto: $e');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final poi = locais.firstWhere((element) => element["id"] == poiID);
+    final poi = locais.firstWhere((element) => element["id"] == widget.poiID);
 
     return Scaffold(
       appBar: AppBar(
@@ -193,34 +238,64 @@ class PoiScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              poi["nome"],
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
+      body: 
+        Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    poi["nome"],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                  ),
+                  const Text(
+                    "TO DO",
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                  // Botão para ativar a câmera
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isCameraActive = true; // Ativa a câmera quando o botão é pressionado
+                      });
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.green.shade700),
+                    ),
+                    child: const Text('Usar Câmera'),
+                  ),
+                ],
               ),
             ),
-            Text(
-              style: const TextStyle(
-                fontSize: 18,
-            ),
-            Text(
-              poi["king"],
-              style: const TextStyle(
-                fontSize: 14,
+            // Exibir a câmera se estiver ativa
+            if (_isCameraActive) 
+              Column(
+                children: [
+                  Expanded(
+                    child: CameraPreview(_controller!), // Exibe a visualização da câmera
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await takePicture(); // Chama a função para tirar a foto
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.green.shade700),
+                    ),
+                    child: const Text('Tirar Foto'),
+                  ),
+                ],
               ),
-            ),
           ],
         ),
-      ),
     );
   }
 }
-
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
