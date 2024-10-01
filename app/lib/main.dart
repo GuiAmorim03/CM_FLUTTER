@@ -11,22 +11,22 @@ void main() {
 }
 
 final List<Map<String, dynamic>> locais = [
-  {"id":1, "nome": "Big Ben", "distance": 1300, "coord":{"lat": 51.510357, "lng": -0.116773}, "visited": false},
-  {"id":2, "nome": "Eiffel Tower", "distance": 1800, "coord":{"lat": 48.858093, "lng": 2.294694}, "visited": false},
-  {"id":3, "nome": "Berlin Wall", "distance": 450, "coord":{"lat": 52.535152, "lng": 13.390206}, "visited": true},
-  {"id":4, "nome": "Sagrada Familia", "distance": 230, "coord":{"lat": 41.403706, "lng": 2.173504}, "visited": false},
-  {"id":5, "nome": "Colosseum", "distance": 800, "coord":{"lat": 41.890210, "lng": 12.492231}, "visited": true},
-  {"id":6, "nome": "Statue of Liberty", "distance": 1200, "coord":{"lat": 40.689247, "lng": -74.044502}, "visited": true},
-  {"id":7, "nome": "Taj Mahal", "distance": 1500, "coord":{"lat": 27.175015, "lng": 78.042155}, "visited": true},
-  {"id":8, "nome": "Great Wall of China", "distance": 2000, "coord":{"lat": 40.431908, "lng": 116.570374}, "visited": false},
-  {"id":9, "nome": "Machu Picchu", "distance": 3000, "coord":{"lat": -13.163141, "lng": -72.545894}, "visited": true},
-  {"id":10, "nome": "Sydney Opera House", "distance": 4000, "coord":{"lat": -33.856784, "lng": 151.215296}, "visited": true},
-  {"id":11, "nome": "Petra", "distance": 5000, "coord":{"lat": 30.328460, "lng": 35.441397}, "visited": false},
-  {"id":12, "nome": "Chichen Itza", "distance": 6000, "coord":{"lat": 20.684289, "lng": -88.567781}, "visited": false},
-  {"id":13, "nome": "Christ the Redeemer", "distance": 7000, "coord":{"lat": -22.951916, "lng": -43.210487}, "visited": false},
-  {"id":14, "nome": "Machu Picchu", "distance": 8000, "coord":{"lat": -13.163141, "lng": -72.545894}, "visited": false},
-  {"id":15, "nome": "Sydney Opera House", "distance": 9000, "coord":{"lat": -33.856784, "lng": 151.215296}, "visited": false},
-  {"id":16, "nome": "Petra", "distance": 10000, "coord":{"lat": 30.328460, "lng": 35.441397}, "visited": false},
+  {"id":1, "nome": "Big Ben", "distance": 1300, "coord":{"lat": 51.510357, "lng": -0.116773}},
+  {"id":2, "nome": "Eiffel Tower", "distance": 1800, "coord":{"lat": 48.858093, "lng": 2.294694}},
+  {"id":3, "nome": "Berlin Wall", "distance": 450, "coord":{"lat": 52.535152, "lng": 13.390206}, "visited": {"path": "photos/colosseum.jpg", "date": "2024-10-01"}},
+  {"id":4, "nome": "Sagrada Familia", "distance": 230, "coord":{"lat": 41.403706, "lng": 2.173504}},
+  {"id":5, "nome": "Colosseum", "distance": 800, "coord":{"lat": 41.890210, "lng": 12.492231}, "visited": {"path": "photos/colosseum.jpg", "date": "2024-10-01"}},
+  {"id":6, "nome": "Statue of Liberty", "distance": 1200, "coord":{"lat": 40.689247, "lng": -74.044502}, "visited": {"path": "photos/colosseum.jpg", "date": "2024-10-01"}},
+  {"id":7, "nome": "Taj Mahal", "distance": 1500, "coord":{"lat": 27.175015, "lng": 78.042155}, "visited": {"path": "photos/colosseum.jpg", "date": "2024-10-01"}},
+  {"id":8, "nome": "Great Wall of China", "distance": 2000, "coord":{"lat": 40.431908, "lng": 116.570374}},
+  {"id":9, "nome": "Machu Picchu", "distance": 3000, "coord":{"lat": -13.163141, "lng": -72.545894}, "visited": {"path": "photos/colosseum.jpg", "date": "2024-10-01"}},
+  {"id":10, "nome": "Sydney Opera House", "distance": 4000, "coord":{"lat": -33.856784, "lng": 151.215296}, "visited": {"path": "photos/colosseum.jpg", "date": "2024-10-01"}},
+  {"id":11, "nome": "Petra", "distance": 5000, "coord":{"lat": 30.328460, "lng": 35.441397}},
+  {"id":12, "nome": "Chichen Itza", "distance": 6000, "coord":{"lat": 20.684289, "lng": -88.567781}},
+  {"id":13, "nome": "Christ the Redeemer", "distance": 7000, "coord":{"lat": -22.951916, "lng": -43.210487}},
+  {"id":14, "nome": "Machu Picchu", "distance": 8000, "coord":{"lat": -13.163141, "lng": -72.545894}},
+  {"id":15, "nome": "Sydney Opera House", "distance": 9000, "coord":{"lat": -33.856784, "lng": 151.215296}},
+  {"id":16, "nome": "Petra", "distance": 10000, "coord":{"lat": 30.328460, "lng": 35.441397}},
 ];
 
 final List<Map<String, dynamic>> locaisTop5Nearby = (locais..sort((a, b) => a["distance"].compareTo(b["distance"]))).sublist(0, 5);
@@ -164,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                         child: Icon(
                           Icons.location_pin,
                           size: 40,
-                        color: local["visited"] == true
+                        color: local["visited"] != null
                             ? Colors.green.shade700 // locais já visitados
                             : Colors.greenAccent.shade700, // locais não visitados
                         ),
@@ -196,7 +196,11 @@ class _PoiScreenState extends State<PoiScreen> {
   @override
   Widget build(BuildContext context) {
     final poi = locais.firstWhere((element) => element["id"] == widget.poiID);
-    print(poi);
+
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  print(screenWidth);
+  print(screenHeight);
 
     return Scaffold(
       appBar: AppBar(
@@ -209,35 +213,58 @@ class _PoiScreenState extends State<PoiScreen> {
         Center(
           child: Column(
             children: <Widget>[
-              
-              if (poi.containsKey("imagePath") && poi["imagePath"] != null)
-                Image.file(
-                  File(poi["imagePath"]),
-                  width: 300,
-                  height: 600,
-                  fit: BoxFit.cover,
+              if (poi.containsKey("visited") && poi["visited"]["path"] != null)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: poi["visited"]["path"].startsWith("photos")
+                    ? Image.asset(
+                      poi["visited"]["path"],
+                      width: screenWidth * 0.6,
+                      height: screenHeight * 0.5,
+                      fit: BoxFit.cover,
+                    )
+                    : Image.file(
+                      File(poi["visited"]["path"]),
+                      width: screenWidth * 0.6,
+                      height: screenHeight * 0.5,
+                      fit: BoxFit.cover,
+                    ),
                 )
               else
-                ElevatedButton(
-                  onPressed: () async {
-                    final imagePath = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CameraScreen(poiID: widget.poiID),
+                Row( 
+                  children: <Widget>[
+                    Image.asset(
+                      "photos/no-photo.jpg",
+                      width: screenWidth * 0.6,
+                      height: screenHeight * 0.5,
+                      fit: BoxFit.cover,
+                    ),      
+                    ElevatedButton(
+                      onPressed: () async {
+                        final imagePath = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CameraScreen(poiID: widget.poiID),
+                          ),
+                        );
+                        if (imagePath != null && imagePath.isNotEmpty) {
+                          setState(() {
+                            poi["visited"] = {"path": imagePath, "date": DateTime.now().toIso8601String()};
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        padding: const EdgeInsets.all(10.0),
+                        alignment: Alignment.center,
                       ),
-                    );
-
-                    if (imagePath != null && imagePath.isNotEmpty) {
-                      setState(() {
-                        poi["imagePath"] = imagePath;
-                      });
-                    }
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.green.shade700),
-                  ),
-                  child: const Text('Usar Câmera'),
-                ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                )
             ],
           ),
         ),
