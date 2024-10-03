@@ -39,9 +39,9 @@ final List<Map<String, dynamic>> locais = [
   {"id":25, "nome": "Sé de Aveiro", "coord": {"lat": 40.6401, "lng": -8.6538}}, 
 ];
 
-List<Map<String, dynamic>> locaisTop5Nearby = [];
-void _updateTop5NearbyLocals() {
-  locaisTop5Nearby = (locais..sort((a, b) => a["distance"].compareTo(b["distance"]))).sublist(0, 5);
+List<Map<String, dynamic>> locaisTop10Nearby = [];
+void _updateTop10NearbyLocals() {
+  locaisTop10Nearby = (locais..sort((a, b) => a["distance"].compareTo(b["distance"]))).sublist(0, 10);
 }
 
 
@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
         final double distance = Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, local["coord"]["lat"], local["coord"]["lng"]);
         local["distance"] = distance.round();
       }
-      _updateTop5NearbyLocals();
+      _updateTop10NearbyLocals();
       setState(() {});  // atualizar a interface
     }
   }
@@ -201,7 +201,7 @@ class _HomePageState extends State<HomePage> {
                 ? const Center(child: CircularProgressIndicator())
                 :
                 ListView.builder(
-                  itemCount: locaisTop5Nearby.length,
+                  itemCount: locaisTop10Nearby.length,
                   itemBuilder: (context, index) {
                     return ListTile(
                       tileColor: Colors.white,
@@ -216,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       trailing: Text(
-                        _formatDistance(locaisTop5Nearby[index]["distance"]),
+                        _formatDistance(locaisTop10Nearby[index]["distance"]),
                         style: TextStyle(
                           color: Colors.green.shade700,
                         ),
