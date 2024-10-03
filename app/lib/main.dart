@@ -197,10 +197,8 @@ class _PoiScreenState extends State<PoiScreen> {
   Widget build(BuildContext context) {
     final poi = locais.firstWhere((element) => element["id"] == widget.poiID);
 
-  final screenWidth = MediaQuery.of(context).size.width;
-  final screenHeight = MediaQuery.of(context).size.height;
-  print(screenWidth);
-  print(screenHeight);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
