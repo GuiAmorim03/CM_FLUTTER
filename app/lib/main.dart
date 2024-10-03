@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -29,7 +30,11 @@ final List<Map<String, dynamic>> locais = [
   {"id":16, "nome": "Petra", "distance": 10000, "coord":{"lat": 30.328460, "lng": 35.441397}},
 ];
 
-final List<Map<String, dynamic>> locaisTop5Nearby = (locais..sort((a, b) => a["distance"].compareTo(b["distance"]))).sublist(0, 5);
+List<Map<String, dynamic>> locaisTop5Nearby = [];
+void _updateTop5NearbyLocals() {
+  locaisTop5Nearby = (locais..sort((a, b) => a["distance"].compareTo(b["distance"]))).sublist(0, 5);
+}
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -77,6 +82,66 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  LatLng? _currentPosition;
+
+  final MapController _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTop5NearbyLocals();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Permissão de localização foi negada.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Permissão de localização foi permanentemente negada.');
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentPosition = LatLng(position.latitude, position.longitude);
+      _mapController.move(_currentPosition!, 7);
+      _updateDistanceToLocals();
+    });
+  }
+
+  void _updateDistanceToLocals() {
+    if (_currentPosition != null) {
+      for (var local in locais) {
+        final double distance = Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, local["coord"]["lat"], local["coord"]["lng"]);
+        local["distance"] = distance.round();
+      }
+      _updateTop5NearbyLocals();
+      setState(() {});  // atualizar a interface
+    }
+  }
+
+  String _formatDistance(int distance) {
+    if (distance < 1000) {
+      return "${distance}m";
+    } else if (distance < 10000) {
+      return "${(distance / 1000).toStringAsFixed(1)}km";
+    } else {
+      return "${(distance / 1000).toStringAsFixed(0)}km";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,54 +154,58 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: locaisTop5Nearby.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: Icon(
-                    Icons.place,
-                    color: Colors.green.shade700,
-                  ),
-                  title: Text(
-                    locais[index]["nome"],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  trailing: Text(
-                    "${locaisTop5Nearby[index]["distance"]}m",
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                    ),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0),
-                    side: BorderSide(
-                      color: Colors.green.shade700,
-                      width: .25,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => PoiScreen(
-                          poiID: locais[index]["id"],
+            Expanded(
+              child: _currentPosition == null
+                ? const Center(child: CircularProgressIndicator())
+                :
+                ListView.builder(
+                  itemCount: locaisTop5Nearby.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Icon(
+                        Icons.place,
+                        color: Colors.green.shade700,
+                      ),
+                      title: Text(
+                        locais[index]["nome"],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      trailing: Text(
+                        _formatDistance(locaisTop5Nearby[index]["distance"]),
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                        side: BorderSide(
+                          color: Colors.green.shade700,
+                          width: .25,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => PoiScreen(
+                              poiID: locais[index]["id"],
+                            ),
+                          ),
+                        );
+                      },
+                      visualDensity: const VisualDensity(
+                        vertical: 3,
                       ),
                     );
                   },
-                  visualDensity: const VisualDensity(
-                    vertical: 3,
-                  ),
-                );
-              },
+                ),
             ),
-          ),
-          Expanded(
+            Expanded(
             child: FlutterMap(
-              options: const MapOptions(
-                initialCenter: LatLng(40.631375, -8.659969),  // UA
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _currentPosition ?? const LatLng(40.631375, -8.659969),  // UA
                 initialZoom: 7,
                 // interactionOptions: InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom)
               ),
@@ -170,7 +239,23 @@ class _HomePageState extends State<HomePage> {
                         ),
                       )
                   );
-                }).toList())
+                }).toList()),
+
+                if (_currentPosition != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        width: 80,
+                        height: 80,
+                        point: _currentPosition!,
+                        child: Icon(
+                          Icons.share_location_rounded,
+                          size: 40,
+                          color: Colors.red.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             )
           )
