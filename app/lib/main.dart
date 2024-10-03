@@ -95,6 +95,9 @@ class _HomePageState extends State<HomePage> {
 
   final MapController _mapController = MapController();
 
+  bool _mostrarLocaisVisitados = true;
+  bool _mostrarLocaisNaoVisitados = true;
+
   @override
   void initState() {
     super.initState();
@@ -151,6 +154,37 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  List<Marker> _filterMarkers() {
+    return locais.where((local) {
+      bool isVisited = local.containsKey("visited");
+      if (_mostrarLocaisVisitados && isVisited) return true;
+      if (_mostrarLocaisNaoVisitados && !isVisited) return true;
+      return false;
+    }).map((local) {
+      return Marker(
+        width: 80,
+        height: 80,
+        point: LatLng(local["coord"]["lat"], local["coord"]["lng"]),
+        child: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => PoiScreen(poiID: local["id"]),
+              ),
+            );
+          },
+          child: Icon(
+            Icons.location_pin,
+            size: 40,
+            color: local["visited"] != null
+                ? Colors.green.shade700 // locais já visitados
+                : Colors.greenAccent.shade700, // locais não visitados
+          ),
+        ),
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,6 +204,7 @@ class _HomePageState extends State<HomePage> {
                   itemCount: locaisTop5Nearby.length,
                   itemBuilder: (context, index) {
                     return ListTile(
+                      tileColor: Colors.white,
                       leading: Icon(
                         Icons.place,
                         color: Colors.green.shade700,
@@ -203,11 +238,46 @@ class _HomePageState extends State<HomePage> {
                         );
                       },
                       visualDensity: const VisualDensity(
-                        vertical: 3,
+                        vertical: 2,
                       ),
                     );
                   },
                 ),
+            ),
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _mostrarLocaisVisitados,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _mostrarLocaisVisitados = value!;
+                          });
+                        },
+                      ),
+                      const Text('Visited'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _mostrarLocaisNaoVisitados,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _mostrarLocaisNaoVisitados = value!;
+                          });
+                        },
+                      ),
+                      const Text('Non Visited'),
+                    ],
+                  ),
+                ],
+              ),
             ),
             Expanded(
             child: FlutterMap(
@@ -222,32 +292,7 @@ class _HomePageState extends State<HomePage> {
                   urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                   userAgentPackageName: 'dev.fleaflet.flutter_map.example',
                 ),
-                MarkerLayer(markers: locais.map((local){
-                  return Marker(
-                    width: 80,
-                    height: 80,
-                    point: LatLng(local["coord"]["lat"], local["coord"]["lng"]),
-                    child:
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => PoiScreen(
-                                poiID: local["id"],
-                              ),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.location_pin,
-                          size: 40,
-                        color: local["visited"] != null
-                            ? Colors.green.shade700 // locais já visitados
-                            : Colors.greenAccent.shade700, // locais não visitados
-                        ),
-                      )
-                  );
-                }).toList()),
+                MarkerLayer(markers: _filterMarkers()),
 
                 if (_currentPosition != null)
                   MarkerLayer(
