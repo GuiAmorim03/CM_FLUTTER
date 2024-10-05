@@ -34,25 +34,21 @@ class _HomePageState extends State<HomePage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
+      return Future.error('Localização desativada');
     }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return Future.error('Permissão de localização foi negada.');
+        return Future.error('Permissão negada');
       }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Permissão de localização foi permanentemente negada.');
     }
 
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
-      _mapController.move(_currentPosition!, 7);
+      _mapController.move(_currentPosition!, 8);
       _updateDistanceToLocals();
     });
   }
@@ -158,13 +154,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => PoiScreen(
-                              poiID: locais[index]["id"],
-                            ),
-                          ),
-                        );
+                        _mapController.move(LatLng(locaisTop10Nearby[index]["coord"]["lat"], locaisTop10Nearby[index]["coord"]["lng"]), 13);
                       },
                       visualDensity: const VisualDensity(
                         vertical: 2,
@@ -195,6 +185,7 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       Checkbox(
+                        activeColor: Colors.greenAccent.shade700,
                         value: _mostrarLocaisNaoVisitados,
                         onChanged: (bool? value) {
                           setState(() {
@@ -213,7 +204,7 @@ class _HomePageState extends State<HomePage> {
               mapController: _mapController,
               options: MapOptions(
                 initialCenter: _currentPosition ?? const LatLng(40.631375, -8.659969),  // UA
-                initialZoom: 7,
+                initialZoom: 8,
                 // interactionOptions: InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom)
               ),
               children: [
@@ -242,7 +233,15 @@ class _HomePageState extends State<HomePage> {
             )
           )
         ],
-      )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _mapController.move(_currentPosition!, 13);
+          });
+        },
+        child: const Icon(Icons.my_location),
+      ),
     );
   }
 }
