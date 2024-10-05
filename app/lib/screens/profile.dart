@@ -1,14 +1,14 @@
 
 import 'package:flutter/material.dart';
 
-class FriendsScreen extends StatefulWidget {
-  const FriendsScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<FriendsScreen> createState() => _FriendsScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void initState() {
@@ -20,7 +20,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Friends'),
+        title: const Text('Profile'),
         backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
         centerTitle: true,

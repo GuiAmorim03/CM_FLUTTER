@@ -49,7 +49,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
     final String newPath = '${appDir.path}/foto_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    final File newImage = await File(_capturedImage!.path).copy(newPath);
+    await File(_capturedImage!.path).copy(newPath);
     return newPath;
   }
 
