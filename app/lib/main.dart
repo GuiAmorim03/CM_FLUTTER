@@ -1,6 +1,6 @@
 import 'package:app/screens/friends.dart';
 import 'package:app/screens/home.dart';
-import 'package:app/screens/profile.dart';
+import 'package:app/screens/search.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
               tabs: [
                 Tab(icon: Icon(Icons.people)),
                 Tab(icon: Icon(Icons.home)),
-                Tab(icon: Icon(Icons.account_circle)),
+                Tab(icon: Icon(Icons.search)),
               ],
             ),
           ),
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
             children: [
               FriendsScreen(),
               HomePage(),
-              ProfileScreen(),
+              SearchScreen(),
             ],
           ),
         ),
