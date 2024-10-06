@@ -67,6 +67,17 @@ class _PoiScreenState extends State<PoiScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(15),
+                              child:
+                                Text(
+                                  "${poi["nome"]}",
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                            ),
                             if (poi.containsKey("visited") && poi["visited"]["path"] != null) ...[
                               Text(
                                 "Scanned on",
@@ -83,30 +94,30 @@ class _PoiScreenState extends State<PoiScreen> {
                               ),
                             ]
                             else
-                            ElevatedButton(
-                              onPressed: () async {
-                                final imagePath = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CameraScreen(poiID: widget.poiID),
-                                  ),
-                                );
-                                if (imagePath != null && imagePath.isNotEmpty) {
-                                  setState(() {
-                                    poi["visited"] = {"path": imagePath, "date": DateTime.now().toIso8601String().split('T')[0]};
-                                  });
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade700,
-                                padding: const EdgeInsets.all(10.0),
-                                alignment: Alignment.center,
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final imagePath = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CameraScreen(poiID: widget.poiID),
+                                    ),
+                                  );
+                                  if (imagePath != null && imagePath.isNotEmpty) {
+                                    setState(() {
+                                      poi["visited"] = {"path": imagePath, "date": DateTime.now().toIso8601String().split('T')[0]};
+                                    });
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade700,
+                                  padding: const EdgeInsets.all(10.0),
+                                  alignment: Alignment.center,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                              ),
-                            ),
                           ],
                         ),
                       )
