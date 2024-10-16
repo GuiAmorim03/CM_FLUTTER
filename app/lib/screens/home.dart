@@ -1,4 +1,5 @@
-
+import 'package:app/models/local.dart';
+import 'package:app/services/local_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -22,10 +23,17 @@ class _HomePageState extends State<HomePage> {
   bool _mostrarLocaisVisitados = true;
   bool _mostrarLocaisNaoVisitados = true;
 
+  List<Local> _locais = [];
   @override
   void initState() {
     super.initState();
+    _getLocais();
     _getCurrentLocation();
+  }
+
+  Future<void> _getLocais() async {
+    final localService = LocalService();
+    _locais = await localService.fetchLocais();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -55,18 +63,24 @@ class _HomePageState extends State<HomePage> {
 
   void _updateDistanceToLocals() {
     if (_currentPosition != null) {
-      for (var local in locais) {
-        final double distance = Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, local["coord"]["lat"], local["coord"]["lng"]);
-        local["distance"] = distance.round();
+      for (var local in _locais) {
+        final double distance = Geolocator.distanceBetween(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+            local.lat,
+            local.lng);
+        local.distance = distance.round();
       }
       _updateTop10NearbyLocals();
-      setState(() {});  // atualizar a interface
+      setState(() {}); // atualizar a interface
     }
   }
 
-  List<Map<String, dynamic>> locaisTop10Nearby = [];
+  List<Local> locaisTop10Nearby = [];
   void _updateTop10NearbyLocals() {
-    locaisTop10Nearby = (locais..sort((a, b) => a["distance"].compareTo(b["distance"]))).sublist(0, 10);
+    locaisTop10Nearby = (_locais
+          ..sort((a, b) => a.distance.compareTo(b.distance)))
+        .sublist(0, 10);
   }
 
   String _formatDistance(int distance) {
@@ -121,117 +135,118 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-            Expanded(
-              child: _currentPosition == null
+          Expanded(
+            child: _currentPosition == null
                 ? const Center(child: CircularProgressIndicator())
-                :
-                ListView.builder(
-                  itemCount: locaisTop10Nearby.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      tileColor: Colors.white,
-                      leading: Icon(
-                        Icons.place,
-                        color: Colors.green.shade700,
-                      ),
-                      title: Text(
-                        locais[index]["nome"],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      trailing: Text(
-                        _formatDistance(locaisTop10Nearby[index]["distance"]),
-                        style: TextStyle(
+                : ListView.builder(
+                    itemCount: locaisTop10Nearby.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        tileColor: Colors.white,
+                        leading: Icon(
+                          Icons.place,
                           color: Colors.green.shade700,
                         ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(0),
-                        side: BorderSide(
-                          color: Colors.green.shade700,
-                          width: .25,
+                        title: Text(
+                          locaisTop10Nearby[index].name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      onTap: () {
-                        _mapController.move(LatLng(locaisTop10Nearby[index]["coord"]["lat"], locaisTop10Nearby[index]["coord"]["lng"]), 13);
-                      },
-                      visualDensity: const VisualDensity(
-                        vertical: 2,
-                      ),
-                    );
-                  },
-                ),
-            ),
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _mostrarLocaisVisitados,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _mostrarLocaisVisitados = value!;
-                          });
+                        trailing: Text(
+                          _formatDistance(locaisTop10Nearby[index].distance),
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0),
+                          side: BorderSide(
+                            color: Colors.green.shade700,
+                            width: .25,
+                          ),
+                        ),
+                        onTap: () {
+                          _mapController.move(
+                              LatLng(locaisTop10Nearby[index].lat,
+                                  locaisTop10Nearby[index].lng),
+                              13);
                         },
-                      ),
-                      const Text('Visited'),
-                    ],
+                        visualDensity: const VisualDensity(
+                          vertical: 2,
+                        ),
+                      );
+                    },
                   ),
-                  Row(
-                    children: [
-                      Checkbox(
-                        activeColor: Colors.greenAccent.shade700,
-                        value: _mostrarLocaisNaoVisitados,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _mostrarLocaisNaoVisitados = value!;
-                          });
-                        },
-                      ),
-                      const Text('Non Visited'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-            child: FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _currentPosition ?? const LatLng(40.631375, -8.659969),  // UA
-                initialZoom: 8,
-                // interactionOptions: InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom)
-              ),
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TileLayer(
-                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _mostrarLocaisVisitados,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _mostrarLocaisVisitados = value!;
+                        });
+                      },
+                    ),
+                    const Text('Visited'),
+                  ],
                 ),
-                MarkerLayer(markers: _filterMarkers()),
-
-                if (_currentPosition != null)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        width: 80,
-                        height: 80,
-                        point: _currentPosition!,
-                        child: Icon(
-                          Icons.share_location_rounded,
-                          size: 40,
-                          color: Colors.red.shade900,
-                        ),
-                      ),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    Checkbox(
+                      activeColor: Colors.greenAccent.shade700,
+                      value: _mostrarLocaisNaoVisitados,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _mostrarLocaisNaoVisitados = value!;
+                        });
+                      },
+                    ),
+                    const Text('Non Visited'),
+                  ],
+                ),
               ],
-            )
-          )
+            ),
+          ),
+          Expanded(
+              child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter:
+                  _currentPosition ?? const LatLng(40.631375, -8.659969), // UA
+              initialZoom: 8,
+              // interactionOptions: InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom)
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+              ),
+              MarkerLayer(markers: _filterMarkers()),
+              if (_currentPosition != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      width: 80,
+                      height: 80,
+                      point: _currentPosition!,
+                      child: Icon(
+                        Icons.share_location_rounded,
+                        size: 40,
+                        color: Colors.red.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ))
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -245,4 +260,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
