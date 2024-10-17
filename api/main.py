@@ -1,4 +1,5 @@
 # main.py
+from uuid import uuid4
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 import os
 from fastapi.staticfiles import StaticFiles
+from fastapi import File, UploadFile
 
 app = FastAPI()
 
@@ -104,10 +106,17 @@ def read_user_local_detail(
     local = db.query(models.UserLocal).filter(
         models.UserLocal.local_id == local_id,
         models.UserLocal.user_id == user_id
-    ).first()   
+    ).first()
+
+    print(local)
     
     if not local:
-        raise HTTPException(status_code=404, detail="This user had not scan this local")
+        local = models.UserLocal(
+            user_id=user_id,
+            local_id=local_id,
+            image_url=None,
+            visited=None
+        )
     
     return local
 
@@ -116,7 +125,7 @@ def read_user_local_detail(
 def create_user_local(
     user_local: schemas.UserLocalCreate,
     db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(auth.get_current_user)
+    # current_user: models.User = Depends(auth.get_current_user)
 ):
     # Check if the local exists
     local = db.query(models.Local).filter(models.Local.id == user_local.local_id).first()
@@ -124,7 +133,7 @@ def create_user_local(
         raise HTTPException(status_code=404, detail="Local not found")
     
     new_user_local = models.UserLocal(
-        user_id=current_user.id,
+        user_id=user_local.user_id,
         local_id=user_local.local_id,
         image_url=user_local.image_url,
         visited=user_local.visited,
@@ -135,3 +144,18 @@ def create_user_local(
     db.refresh(new_user_local)
 
     return new_user_local
+
+# Upload Image from Photo
+@app.post("/upload-image/")
+async def upload_image(file: UploadFile = File(...)):
+    print("python")
+    print(file)
+    file_name = f"{uuid4()}.jpg"
+    file_location = f"{IMAGE_DIR}/{file_name}"
+
+
+    with open(file_location, "wb") as f:
+        f.write(await file.read())
+
+    image_url = f"http://{host}/{file_location}"
+    return {"image_url": image_url}

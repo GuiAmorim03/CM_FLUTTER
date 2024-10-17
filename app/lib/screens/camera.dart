@@ -1,9 +1,9 @@
-
 import 'dart:io';
 
+import 'package:app/main.dart';
+import 'package:app/services/local_service.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key, required this.poiID});
@@ -15,6 +15,9 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+  String token = '';
+  int userID = 0;
+
   CameraController? _controller;
   List<CameraDescription>? _cameras;
   XFile? _capturedImage;
@@ -22,7 +25,14 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
+    _getSession();
     initCamera();
+  }
+
+  Future _getSession() async {
+    final myAppState = context.findAncestorStateOfType<MyAppState>();
+    token = myAppState!.getToken();
+    userID = myAppState.getUserID();
   }
 
   Future<void> initCamera() async {
@@ -44,13 +54,9 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<String> _saveImage() async {
-
-    final Directory appDir = await getApplicationDocumentsDirectory();
-
-    final String newPath = '${appDir.path}/foto_${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-    await File(_capturedImage!.path).copy(newPath);
-    return newPath;
+    LocalService localService = LocalService();
+    return await localService.savePhoto(
+        File(_capturedImage!.path), userID, widget.poiID);
   }
 
   @override
@@ -68,7 +74,7 @@ class _CameraScreenState extends State<CameraScreen> {
         foregroundColor: Colors.white,
       ),
       body: _capturedImage == null
-          ? _buildCameraPreview()  
+          ? _buildCameraPreview()
           : _buildCapturedImage(),
     );
   }
@@ -78,46 +84,40 @@ class _CameraScreenState extends State<CameraScreen> {
     if (_controller == null || !_controller!.value.isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
-    return Stack(
-      children: [
-        CameraPreview(_controller!),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            color: Colors.green.shade700,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    await takePicture();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.green.shade700,
-                    backgroundColor: Colors.white,
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt
-                  ),
+    return Stack(children: [
+      CameraPreview(_controller!),
+      Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          color: Colors.green.shade700,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  await takePicture();
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.green.shade700,
+                  backgroundColor: Colors.white,
                 ),
-              ],
-            ),
+                child: const Icon(Icons.camera_alt),
+              ),
+            ],
           ),
         ),
-      ]
-    );
+      ),
+    ]);
   }
 
   // Foto Tirada
   Widget _buildCapturedImage() {
-    return Stack(
-      children: [
-        Image.file(File(_capturedImage!.path)),
-        Align(
+    return Stack(children: [
+      Image.file(File(_capturedImage!.path)),
+      Align(
           alignment: Alignment.bottomCenter,
-          child:
-          Container(
+          child: Container(
             color: Colors.green.shade700,
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
@@ -153,10 +153,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 )
               ],
             ),
-          )
-        )
-      ]
-    );
+          ))
+    ]);
   }
 }
-

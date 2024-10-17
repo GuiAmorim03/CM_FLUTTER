@@ -39,14 +39,13 @@ class LocalSchema(LocalBase):
 class UserLocalBase(BaseModel):
     user_id: int
     local_id: int
-    image_url: str
-    visited: datetime = datetime.utcnow()
+    image_url: Optional[str] = None
+    visited: Optional[datetime] = None
 
 class UserLocalCreate(UserLocalBase):
     pass
 
 class UserLocalSchema(UserLocalBase):
-    id: int
 
     class Config:
         orm_mode = True

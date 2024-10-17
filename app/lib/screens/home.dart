@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => PoiScreen(poiID: local.id),
+                builder: (context) => PoiScreen(poi: local, poiID: local.id),
               ),
             );
           },

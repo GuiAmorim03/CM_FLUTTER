@@ -32,8 +32,8 @@ class UserLocal(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     local_id = Column(Integer, ForeignKey("locals.id"), nullable=False, index=True)
-    image_url = Column(String, nullable=False)
-    visited = Column(DateTime, nullable=False)
+    image_url = Column(String, nullable=True)
+    visited = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="local_images")
     local = relationship("Local", back_populates="local_images")
