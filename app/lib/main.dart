@@ -18,12 +18,22 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   bool isLoggedIn = false;
   String token = '';
+  int userID = 0;
 
-  void login(String tokenLogin) {
+  void login(String tokenLogin, int id) {
     setState(() {
       isLoggedIn = true;
       token = tokenLogin;
+      userID = id;
     });
+  }
+
+  String getToken() {
+    return token;
+  }
+
+  int getUserID() {
+    return userID;
   }
 
   void logout() {

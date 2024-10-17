@@ -18,7 +18,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Instance for OAuth2 with password access (Bearer Token)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # Function to get the database
 def get_db():

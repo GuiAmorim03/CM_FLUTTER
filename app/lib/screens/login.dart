@@ -35,11 +35,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final token = data['access_token'];
+      final id = data['id'];
 
-      // Chamar o método _login passando o token
       if (context.mounted) {
         final myAppState = context.findAncestorStateOfType<MyAppState>();
-        myAppState?.login(token);
+        myAppState?.login(token, id);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -50,6 +50,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // provocar login com admin admin para dev
+    _usernameController.text = 'admin';
+    _passwordController.text = 'admin';
+    _login();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
