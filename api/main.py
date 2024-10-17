@@ -11,6 +11,7 @@ from datetime import timedelta
 import os
 from fastapi.staticfiles import StaticFiles
 from fastapi import File, UploadFile
+from api_url import host
 
 app = FastAPI()
 
