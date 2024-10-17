@@ -1,3 +1,4 @@
+import 'package:app/main.dart';
 import 'package:app/models/local.dart';
 import 'package:app/services/local_service.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../models/locais.dart';
 import 'poi.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,6 +16,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String token = '';
+  int userID = 0;
   LatLng? _currentPosition;
 
   final MapController _mapController = MapController();
@@ -24,16 +26,30 @@ class _HomePageState extends State<HomePage> {
   bool _mostrarLocaisNaoVisitados = true;
 
   List<Local> _locais = [];
+  List<Local> _locaisVisited = [];
   @override
   void initState() {
     super.initState();
+    _getSession();
     _getLocais();
     _getCurrentLocation();
+  }
+
+  Future _getSession() async {
+    final myAppState = context.findAncestorStateOfType<MyAppState>();
+    token = myAppState!.getToken();
+    userID = myAppState.getUserID();
   }
 
   Future<void> _getLocais() async {
     final localService = LocalService();
     _locais = await localService.fetchLocais();
+    _locaisVisited = await localService.fetchLocaisVisitados(userID);
+    for (var local in _locais) {
+      if (_locaisVisited.any((element) => element.id == local.id)) {
+        local.visitedByCurrentUser = true;
+      }
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -76,9 +92,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  List<Local> locaisTop10Nearby = [];
+  List<Local> _locaisTop10Nearby = [];
   void _updateTop10NearbyLocals() {
-    locaisTop10Nearby = (_locais
+    _locaisTop10Nearby = (_locais
           ..sort((a, b) => a.distance.compareTo(b.distance)))
         .sublist(0, 10);
   }
@@ -94,8 +110,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Marker> _filterMarkers() {
-    return locais.where((local) {
-      bool isVisited = local.containsKey("visited");
+    return _locais.where((local) {
+      bool isVisited = local.visitedByCurrentUser;
       if (_mostrarLocaisVisitados && isVisited) return true;
       if (_mostrarLocaisNaoVisitados && !isVisited) return true;
       return false;
@@ -103,19 +119,19 @@ class _HomePageState extends State<HomePage> {
       return Marker(
         width: 80,
         height: 80,
-        point: LatLng(local["coord"]["lat"], local["coord"]["lng"]),
+        point: LatLng(local.lat, local.lng),
         child: GestureDetector(
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => PoiScreen(poiID: local["id"]),
+                builder: (context) => PoiScreen(poiID: local.id),
               ),
             );
           },
           child: Icon(
             Icons.location_pin,
             size: 40,
-            color: local["visited"] != null
+            color: local.visitedByCurrentUser
                 ? Colors.green.shade700 // locais já visitados
                 : Colors.greenAccent.shade700, // locais não visitados
           ),
@@ -139,22 +155,24 @@ class _HomePageState extends State<HomePage> {
             child: _currentPosition == null
                 ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
-                    itemCount: locaisTop10Nearby.length,
+                    itemCount: _locaisTop10Nearby.length,
                     itemBuilder: (context, index) {
                       return ListTile(
                         tileColor: Colors.white,
                         leading: Icon(
                           Icons.place,
-                          color: Colors.green.shade700,
+                          color: _locaisTop10Nearby[index].visitedByCurrentUser
+                              ? Colors.green.shade700
+                              : Colors.greenAccent.shade700,
                         ),
                         title: Text(
-                          locaisTop10Nearby[index].name,
+                          _locaisTop10Nearby[index].name,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         trailing: Text(
-                          _formatDistance(locaisTop10Nearby[index].distance),
+                          _formatDistance(_locaisTop10Nearby[index].distance),
                           style: TextStyle(
                             color: Colors.green.shade700,
                           ),
@@ -168,8 +186,8 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onTap: () {
                           _mapController.move(
-                              LatLng(locaisTop10Nearby[index].lat,
-                                  locaisTop10Nearby[index].lng),
+                              LatLng(_locaisTop10Nearby[index].lat,
+                                  _locaisTop10Nearby[index].lng),
                               13);
                         },
                         visualDensity: const VisualDensity(

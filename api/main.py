@@ -77,14 +77,7 @@ def read_locals(skip: int = 0, limit: int = 100, db: Session = Depends(auth.get_
 def read_user_locals(
     user_id: int,
     db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(auth.get_current_user)
 ):
-    # Check if the user is authorized
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not authorized to access this resource"
-        )
     
     # Check if the user exists
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -101,15 +94,7 @@ def read_user_local_detail(
     user_id: int,
     local_id: int,
     db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(auth.get_current_user)
-):
-    # Check if the user is authorized
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not authorized to access this resource"
-        )
-    
+):    
     # Check if the user exists
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:

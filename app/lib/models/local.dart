@@ -5,6 +5,7 @@ class Local {
   final double lat;
   final double lng;
   int distance;
+  bool visitedByCurrentUser;
 
   Local({
     required this.id,
@@ -12,6 +13,7 @@ class Local {
     required this.lat,
     required this.lng,
     this.distance = 0,
+    this.visitedByCurrentUser = false,
   });
 
   factory Local.fromJson(Map<String, dynamic> json) {
