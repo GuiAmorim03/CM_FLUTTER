@@ -69,7 +69,7 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Câmera'),
+        title: const Text('Camera'),
         backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
       ),

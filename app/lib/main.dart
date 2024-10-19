@@ -50,14 +50,26 @@ class MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green.shade700),
         useMaterial3: true,
       ),
-      home: isLoggedIn ? MainScreen() : LoginScreen(),
+      home: isLoggedIn ? const MainScreen() : const LoginScreen(),
     );
   }
 }
 
-// Crie a tela principal com o `DefaultTabController` para depois do login
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  Future<void> _refreshScreen() async {
+    // Simular uma atualização de 2 segundos
+    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      // Aqui você pode adicionar o que for necessário para atualizar os dados
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,11 +86,20 @@ class MainScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            FriendsScreen(),
-            HomePage(),
-            SearchScreen(),
+            RefreshIndicator(
+              onRefresh: _refreshScreen, // Para a aba Friends
+              child: const FriendsScreen(),
+            ),
+            RefreshIndicator(
+              onRefresh: _refreshScreen, // Para a aba Home
+              child: const HomePage(),
+            ),
+            RefreshIndicator(
+              onRefresh: _refreshScreen, // Para a aba Search
+              child: const SearchScreen(),
+            ),
           ],
         ),
       ),

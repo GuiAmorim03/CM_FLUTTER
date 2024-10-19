@@ -19,6 +19,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
   // ignore: prefer_final_fields
   List<User> _friendsList = [];
 
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +46,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
         });
       },
     );
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   void _navigateToProfile(User user) {
@@ -105,6 +111,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Friends'),
