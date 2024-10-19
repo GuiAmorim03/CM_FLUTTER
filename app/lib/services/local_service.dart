@@ -27,6 +27,34 @@ class LocalService {
     }
   }
 
+  Future<Map<String, List<Local>>> fetchLocaisGroupedByCountry(
+      searchText) async {
+    final url = Uri.parse('$apiUrl/locals/country/?search=$searchText');
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(response.body);
+      Map<String, List<Local>> locais = data.map((country, localsList) {
+        return MapEntry(
+          country,
+          List<Local>.from(
+            localsList.map((localJson) => Local.fromJson(localJson)),
+          ),
+        );
+      });
+      return locais;
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized');
+    } else {
+      throw Exception('Failed to load locais');
+    }
+  }
+
   Future<List<Local>> fetchLocaisVisitados(int userID) async {
     final url = Uri.parse('$apiUrl/locals/$userID');
     final response = await http.get(
@@ -57,7 +85,6 @@ class LocalService {
     );
 
     if (response.statusCode == 200) {
-      print("here");
       Map<String, dynamic> data = json.decode(response.body);
       return UserLocal.fromJson(data);
     } else if (response.statusCode == 401) {

@@ -1,5 +1,6 @@
-import 'package:app/models/locais.dart';
+import 'package:app/models/local.dart';
 import 'package:app/screens/poi.dart';
+import 'package:app/services/local_service.dart';
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -10,47 +11,36 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  Map<String, List<Map<String, dynamic>>> groupedPlaces = {};
+  Map<String, List<Local>> groupedPlaces = {};
 
   final TextEditingController _searchController = TextEditingController();
+
+  bool isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    groupedPlaces = _groupPlacesByCountry(locais);
+    _groupPlacesByCountry('');
   }
 
-  Map<String, List<Map<String, dynamic>>> _groupPlacesByCountry(locals) {
-    Map<String, List<Map<String, dynamic>>> groupedPlaces = {};
-    locals.forEach((local) {
-      if (groupedPlaces.containsKey(local['country'])) {
-        groupedPlaces[local['country']]!.add(local);
-      } else {
-        groupedPlaces[local['country']] = [local];
-      }
+  Future<void> _groupPlacesByCountry(searchText) async {
+    final localService = LocalService();
+    groupedPlaces = await localService.fetchLocaisGroupedByCountry(searchText);
+
+    setState(() {
+      isSearching = false;
     });
-
-    var sortedKeys = groupedPlaces.keys.toList()..sort();
-
-    Map<String, List<Map<String, dynamic>>> sortedGroupedPlaces = {
-      for (var country in sortedKeys) country: groupedPlaces[country]!
-    };
-
-    return sortedGroupedPlaces;
-  }
-
-  List<Map<String, dynamic>> _filterPlacesByName(searchText) {
-    List<Map<String, dynamic>> filteredPlaces = [];
-    for (var local in locais) {
-      if (local['nome'].toLowerCase().contains(searchText)) {
-        filteredPlaces.add(local);
-      }
-    }
-    return filteredPlaces;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isSearching) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Scaffold(
         appBar: AppBar(
           title: const Text('Search Places'),
@@ -70,8 +60,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               onChanged: (searchText) => {
                 setState(() {
-                  groupedPlaces =
-                      _groupPlacesByCountry(_filterPlacesByName(searchText));
+                  _groupPlacesByCountry(searchText);
                 })
               },
             ),
@@ -81,7 +70,7 @@ class _SearchScreenState extends State<SearchScreen> {
               itemCount: groupedPlaces.keys.length,
               itemBuilder: (context, index) {
                 String country = groupedPlaces.keys.elementAt(index);
-                List<Map<String, dynamic>> places = groupedPlaces[country]!;
+                List<Local> places = groupedPlaces[country]!;
 
                 return ExpansionTile(
                   tilePadding:
@@ -96,16 +85,13 @@ class _SearchScreenState extends State<SearchScreen> {
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 0),
-                      title: Text(place['nome']),
-                      subtitle: place.containsKey('visited') &&
-                              place['visited'] != null
-                          ? Text('Visited at ${place['visited']['date']}')
-                          : null,
-                      // onTap: () => Navigator.of(context).push(
-                      //   MaterialPageRoute(
-                      //     builder: (context) => PoiScreen(poiID: place["id"]),
-                      //   ),
-                      // ),
+                      title: Text(place.name),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PoiScreen(poi: place, poiID: place.id),
+                        ),
+                      ),
                     );
                   }).toList(),
                 );

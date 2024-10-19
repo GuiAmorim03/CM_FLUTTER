@@ -3,7 +3,7 @@ from uuid import uuid4
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import Dict, List, Optional
 import models, schemas, auth
 from database import Base, engine
 from fastapi.security import OAuth2PasswordRequestForm
@@ -74,6 +74,24 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
 def read_locals(skip: int = 0, limit: int = 100, db: Session = Depends(auth.get_db)):
     locals = db.query(models.Local).offset(skip).limit(limit).all()
     return locals
+
+# Get All Locals grouped by Country
+@app.get("/locals/country/", response_model=Dict[str, List[schemas.LocalSchema]])
+def read_locals_grouped_by_country(skip: int = 0, limit: int = 100, search: Optional[str] = None, db: Session = Depends(auth.get_db)):
+    locals = db.query(models.Local).offset(skip).limit(limit).all()
+    localsGroupedByCountry = {}
+    for local in locals:
+        if search == None or search.lower() in local.name.lower() or search.lower() in local.country.lower():
+            country = local.country
+            if country not in localsGroupedByCountry:
+                localsGroupedByCountry[country] = []
+            localsGroupedByCountry[country].append(local)
+    
+    # sort by country
+    localsGroupedByCountry = dict(sorted(localsGroupedByCountry.items()))
+
+    return localsGroupedByCountry
+
 
 # Get All Locals by User
 @app.get("/locals/{user_id}/", response_model=List[schemas.LocalSchema])

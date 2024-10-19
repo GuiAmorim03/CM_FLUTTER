@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app/main.dart';
 import 'package:app/models/local.dart';
 import 'package:app/models/userlocal.dart';
@@ -60,7 +58,7 @@ class _PoiScreenState extends State<PoiScreen> {
     if (isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(), // Animação de carregamento
+          child: CircularProgressIndicator(),
         ),
       );
     }
@@ -84,7 +82,7 @@ class _PoiScreenState extends State<PoiScreen> {
                           width: 5,
                         ),
                       ),
-                      child: _poi!.visitedByCurrentUser
+                      child: _userAndPoi!.imgUrl != null
                           ? Image.network(
                               _userAndPoi!.imgUrl ??
                                   'photos/no-photo.jpg', // nunca vai ter null, mas o flutter não sabe disso
