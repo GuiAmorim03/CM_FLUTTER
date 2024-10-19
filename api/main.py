@@ -53,8 +53,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @app.post("/users/", response_model=schemas.UserSchema)
 def create_user(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
     db_user = db.query(models.User).filter(
-        (models.User.username == user.username) | 
-        (models.User.email == user.email)
+        (models.User.username == user.username)
     ).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Username already in use")
@@ -67,6 +66,44 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+# Get All Users
+@app.get("/users/", response_model=List[schemas.UserSchema])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(auth.get_db)):
+    users = db.query(models.User).offset(skip).limit(limit).all()
+    return users
+
+# Get User by ID
+@app.get("/users/{user_id}", response_model=schemas.UserSchema)
+def read_user(user_id: int, db: Session = Depends(auth.get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# Get User by Username
+@app.get("/users/username/{username}", response_model=schemas.UserSchema)
+def read_user_by_username(username: str, db: Session = Depends(auth.get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# Add Friend
+@app.post("/users/friends/{user_id}/{friend_id}/")
+def add_friend(user_id: int, friend_id: int, db: Session = Depends(auth.get_db)):
+    user = db.query(models.User).get(user_id)
+    friend = db.query(models.User).get(friend_id)
+
+    if friend in user.friends:
+        raise HTTPException(status_code=400, detail="Already friends")
+
+    user.friends_obj.append(friend)
+    friend.friends_obj.append(user)
+    db.commit()
+    return {"message": "Friends added successfully"}
 
 
 # Get All Locals

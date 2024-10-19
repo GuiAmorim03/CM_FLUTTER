@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+    // nao esquecer fazer uma verificação se nao der gps, nao ficar preso
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);

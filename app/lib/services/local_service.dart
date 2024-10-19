@@ -8,7 +8,7 @@ import '../models/local.dart';
 
 class LocalService {
   Future<List<Local>> fetchLocais() async {
-    final url = Uri.parse('$apiUrl/locals');
+    final url = Uri.parse('$apiUrl/locals/');
     final response = await http.get(
       url,
       headers: {
@@ -56,7 +56,7 @@ class LocalService {
   }
 
   Future<List<Local>> fetchLocaisVisitados(int userID) async {
-    final url = Uri.parse('$apiUrl/locals/$userID');
+    final url = Uri.parse('$apiUrl/locals/$userID/');
     final response = await http.get(
       url,
       headers: {

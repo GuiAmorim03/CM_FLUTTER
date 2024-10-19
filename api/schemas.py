@@ -1,18 +1,18 @@
 #schemas.py
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 # User Schema
 class UserBase(BaseModel):
     username: str
-    email: str
 
 class UserCreate(UserBase):
     password: str
 
 class UserSchema(UserBase):
     id: int
+    friends: List[int]
 
     class Config:
         orm_mode = True

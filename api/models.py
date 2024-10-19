@@ -1,8 +1,15 @@
 # models.py
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime, UniqueConstraint, Table
 from sqlalchemy.orm import relationship
 from database import Base
 
+
+friends_association = Table(
+    'friends',
+    Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
+    Column('friend_id', Integer, ForeignKey('users.id'), primary_key=True)
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -12,6 +19,19 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
 
     local_images = relationship("UserLocal", back_populates="user", cascade="all, delete-orphan")
+
+    friends_obj = relationship(
+        'User', 
+        secondary=friends_association, 
+        primaryjoin=id == friends_association.c.user_id,
+        secondaryjoin=id == friends_association.c.friend_id,
+        backref="friend_of"
+    )
+
+    @property
+    def friends(self):
+        return [friend.id for friend in self.friends_obj]
+
 
 
 class Local(Base):
