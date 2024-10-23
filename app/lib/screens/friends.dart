@@ -98,8 +98,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
       final friendsService = FriendsService();
       User _friendToAdd =
           await friendsService.getUserDetailsByUsername(username);
-      print(username);
-      print(_friendToAdd);
       await friendsService.addFriend(userID, _friendToAdd.id);
 
       setState(() {
@@ -107,6 +105,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
       });
       Navigator.of(context).pop();
     }
+  }
+
+  void _logout() {
+    final myAppState = context.findAncestorStateOfType<MyAppState>();
+    myAppState?.logout(); // Chama o método de logout
   }
 
   @override
@@ -147,11 +150,23 @@ class _FriendsScreenState extends State<FriendsScreen> {
           }),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddFriendDialog,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _showAddFriendDialog,
+            backgroundColor: Colors.green.shade700,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(height: 10), // Espaçamento entre os botões
+          FloatingActionButton(
+            onPressed: _logout, // Chama a função de logout
+            backgroundColor: Colors.red.shade700,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.logout),
+          ),
+        ],
       ),
     );
   }
