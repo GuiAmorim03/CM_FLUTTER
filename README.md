@@ -5,7 +5,6 @@ Projeto do Módulo de Flutter da Cadeira de Computação Móvel 2024/2025
 
 ## Define Ip Address
 You need to define the ip address of the machine where the api is running in the following files:
-- app/lib/services/api.dart
 - api/api_url.py
 
 ## Start the Api

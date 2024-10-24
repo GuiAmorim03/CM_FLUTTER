@@ -5,6 +5,8 @@ import 'package:app/screens/camera.dart';
 import 'package:app/services/local_service.dart';
 import 'package:flutter/material.dart';
 
+import '../services/api_url.dart';
+
 // import '../models/locais.dart';
 
 class PoiScreen extends StatefulWidget {
@@ -84,8 +86,9 @@ class _PoiScreenState extends State<PoiScreen> {
                       ),
                       child: _userAndPoi!.imgUrl != null
                           ? Image.network(
-                              _userAndPoi!.imgUrl ??
-                                  'photos/no-photo.jpg', // nunca vai ter null, mas o flutter não sabe disso
+                              _userAndPoi!.imgUrl != null
+                                  ? '$apiUrl/${_userAndPoi!.imgUrl}'
+                                  : 'photos/no-photo.jpg', // nunca vai ter null, mas o flutter não sabe disso
                               fit: BoxFit.cover,
                             )
                           : Image.asset(

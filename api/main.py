@@ -11,7 +11,6 @@ from datetime import timedelta
 import os
 from fastapi.staticfiles import StaticFiles
 from fastapi import File, UploadFile
-from api_url import host
 
 app = FastAPI()
 
@@ -213,5 +212,5 @@ async def upload_image(file: UploadFile = File(...)):
     with open(file_location, "wb") as f:
         f.write(await file.read())
 
-    image_url = f"http://{host}/{file_location}"
+    image_url = f"{file_location}"
     return {"image_url": image_url}

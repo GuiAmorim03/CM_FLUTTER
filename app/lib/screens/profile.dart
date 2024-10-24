@@ -1,5 +1,6 @@
 import 'package:app/models/local.dart';
 import 'package:app/models/user.dart';
+import 'package:app/services/api_url.dart';
 import 'package:app/services/friends_service.dart';
 import 'package:app/services/local_service.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -99,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   Image.network(
-                    local['details'].imgUrl,
+                    '$apiUrl/${local['details'].imgUrl}',
                     fit: BoxFit.cover,
                     height: 400,
                     width: double.infinity,
