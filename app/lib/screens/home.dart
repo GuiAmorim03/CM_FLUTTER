@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:app/main.dart';
 import 'package:app/models/local.dart';
 import 'package:app/services/local_service.dart';
@@ -5,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 import 'poi.dart';
 
@@ -16,6 +20,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  double _shakeThreshold = 50;
+  StreamSubscription? _accelerometerSubscription;
+
   String token = '';
   int userID = 0;
   LatLng? _currentPosition;
@@ -33,6 +40,55 @@ class _HomePageState extends State<HomePage> {
     _getSession();
     _getLocais();
     _getCurrentLocation();
+    _startListeningToShake();
+  }
+
+  void _startListeningToShake() {
+    _accelerometerSubscription =
+        accelerometerEvents.listen((AccelerometerEvent event) {
+      double acceleration =
+          sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+
+      if (acceleration > _shakeThreshold) {
+        _onShakeDetected();
+      }
+    });
+  }
+
+  void _onShakeDetected() {
+    var closestLocal = _locaisTop10Nearby[0];
+    var closestDistance = closestLocal.distance;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: closestDistance < 100
+              ? const Text('Nearby point!')
+              : const Text('No nearby points'),
+          content: closestDistance < 100
+              ? Text(
+                  'You are ${_formatDistance(closestDistance)} away from ${_locaisTop10Nearby[0].name}.')
+              : const Text('There are no nearby points within 100 meters.'),
+          actions: <Widget>[
+            TextButton(
+              child:
+                  closestDistance < 100 ? const Text('GO') : const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                closestDistance < 100
+                    ? Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => PoiScreen(
+                              poi: closestLocal, poiID: closestLocal.id),
+                        ),
+                      )
+                    : null;
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future _getSession() async {
