@@ -3,6 +3,8 @@ import 'package:app/models/user.dart';
 import 'package:app/screens/profile.dart';
 import 'package:app/services/friends_service.dart';
 import 'package:flutter/material.dart';
+// import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -61,9 +63,34 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-  void _showAddFriendDialog() {
-    final TextEditingController usernameController = TextEditingController();
+  void _showQRCode() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Share it with a friend!'),
+          content: SizedBox(
+            width: 200,
+            height: 200,
+            child: QrImageView(
+              data: _currentUser.username,
+              version: QrVersions.auto,
+              size: 200.0,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(''),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  final TextEditingController usernameController = TextEditingController();
+  void _showAddFriendDialog() {
     showDialog(
       context: context,
       builder: (context) {
@@ -74,6 +101,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
             decoration: const InputDecoration(hintText: 'Enter username'),
           ),
           actions: [
+            // IconButton(
+            //   icon: const Icon(Icons.qr_code),
+            //   onPressed: _scanQRCode,
+            // ),
             TextButton(
               onPressed: () {
                 String username = usernameController.text.trim();
@@ -81,17 +112,35 @@ class _FriendsScreenState extends State<FriendsScreen> {
               },
               child: const Text('Add'),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Fecha o diálogo sem adicionar
-              },
-              child: const Text('Cancel'),
-            ),
           ],
         );
       },
     );
   }
+
+/*
+  void _scanQRCode() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => QRView(
+          key: GlobalKey(debugLabel: 'QR'),
+          onQRViewCreated: _onQRViewCreated,
+        ),
+      ),
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    controller.scannedDataStream.listen((scanData) {
+      final username = scanData.code ?? '';
+      setState(() {
+        usernameController.text =
+            username; // Preenche o campo de texto com o username
+      });
+      Navigator.of(context).pop(); // Fecha o scanner após obter o username
+    });
+  }
+  */
 
   Future<void> _addFriend(String username) async {
     if (username.isNotEmpty) {
@@ -153,6 +202,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          FloatingActionButton(
+            onPressed: _showQRCode, // Shows QR code
+            backgroundColor: Colors.grey.shade700,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.qr_code),
+          ),
+          const SizedBox(height: 10),
           FloatingActionButton(
             onPressed: _showAddFriendDialog,
             backgroundColor: Colors.green.shade700,
