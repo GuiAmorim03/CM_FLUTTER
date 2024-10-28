@@ -160,22 +160,6 @@ class _PoiScreenState extends State<PoiScreen> {
                 ),
               )
             ]),
-            const Padding(
-                padding: EdgeInsets.all(20),
-                child: Column(children: <Widget>[
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      "Friends Activity",
-                      style: TextStyle(
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    "TO DO",
-                  )
-                ]))
           ],
         ),
       ),

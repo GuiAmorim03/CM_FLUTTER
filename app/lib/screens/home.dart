@@ -62,20 +62,20 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: closestDistance < 100
+          title: closestDistance < 200
               ? const Text('Nearby point!')
               : const Text('No nearby points'),
-          content: closestDistance < 100
+          content: closestDistance < 200
               ? Text(
                   'You are ${_formatDistance(closestDistance)} away from ${_locaisTop10Nearby[0].name}.')
-              : const Text('There are no nearby points within 100 meters.'),
+              : const Text('There are no nearby points within 200 meters.'),
           actions: <Widget>[
             TextButton(
               child:
-                  closestDistance < 100 ? const Text('GO') : const Text('OK'),
+                  closestDistance < 200 ? const Text('GO') : const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                closestDistance < 100
+                closestDistance < 200
                     ? Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => PoiScreen(
@@ -157,8 +157,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _formatDistance(int distance) {
-    if (distance < 1000) {
+    if (distance <= 5) {
       return "${distance}m";
+    } else if (distance < 1000) {
+      return "${(distance / 10).round() * 10}m";
     } else if (distance < 10000) {
       return "${(distance / 1000).toStringAsFixed(1)}km";
     } else {
@@ -228,11 +230,30 @@ class _HomePageState extends State<HomePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        trailing: Text(
-                          _formatDistance(_locaisTop10Nearby[index].distance),
-                          style: TextStyle(
-                            color: Colors.green.shade700,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _formatDistance(
+                                  _locaisTop10Nearby[index].distance),
+                              style: TextStyle(
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => PoiScreen(
+                                        poi: _locaisTop10Nearby[index],
+                                        poiID: _locaisTop10Nearby[index].id),
+                                  ),
+                                );
+                              },
+                              child: const Icon(Icons.arrow_forward),
+                            ),
+                          ],
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(0),
