@@ -3,6 +3,7 @@ import 'package:app/models/user.dart';
 import 'package:app/screens/profile.dart';
 import 'package:app/services/friends_service.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 // import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -101,10 +102,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
             decoration: const InputDecoration(hintText: 'Enter username'),
           ),
           actions: [
-            // IconButton(
-            //   icon: const Icon(Icons.qr_code),
-            //   onPressed: _scanQRCode,
-            // ),
+            IconButton(
+              icon: Icon(Icons.qr_code, color: Colors.green.shade800),
+              onPressed: _scanQRCode,
+            ),
             TextButton(
               onPressed: () {
                 String username = usernameController.text.trim();
@@ -118,29 +119,35 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-/*
   void _scanQRCode() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => QRView(
-          key: GlobalKey(debugLabel: 'QR'),
-          onQRViewCreated: _onQRViewCreated,
+    final String? username = await Navigator.push(
+      context,
+      MaterialPageRoute<String>(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Scan QR Code'),
+            backgroundColor: Colors.green.shade700,
+            foregroundColor: Colors.white,
+          ),
+          body: MobileScanner(
+            onDetect: (barcode) {
+              final String? detectedUsername = barcode.barcodes[0].rawValue;
+              if (detectedUsername != null) {
+                Navigator.of(context).pop(detectedUsername);
+              }
+            },
+          ),
         ),
       ),
     );
-  }
 
-  void _onQRViewCreated(QRViewController controller) {
-    controller.scannedDataStream.listen((scanData) {
-      final username = scanData.code ?? '';
+    if (username != null) {
       setState(() {
-        usernameController.text =
-            username; // Preenche o campo de texto com o username
+        usernameController.text = username;
       });
-      Navigator.of(context).pop(); // Fecha o scanner após obter o username
-    });
+      await _addFriend(username);
+    }
   }
-  */
 
   Future<void> _addFriend(String username) async {
     if (username.isNotEmpty) {
